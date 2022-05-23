@@ -37,7 +37,7 @@ def _curry_function(fn, bindings=()):
 
 def curry(fn: Callable):
     sig = signature(fn)
-    if len(sig.parameters) < 2:
+    if len(sig.parameters) < 2 and not _is_variadic(sig):
         return fn
     if _has_keyword_args(sig):
         raise TypeError("Currying functions with keyword-only args is not supported")

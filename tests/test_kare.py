@@ -72,8 +72,8 @@ class TestCurry:
         assert uncurry(curry(binary_function)) is binary_function
 
     def test_variadic_curried_function(self):
-        def variadic_function(x: int, y: int, *args) -> int:
-            return sum((x, y, *args))
+        def variadic_function(*args) -> int:
+            return sum(args)
 
         fn = curry(variadic_function)
 
