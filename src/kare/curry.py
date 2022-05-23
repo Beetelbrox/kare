@@ -1,18 +1,15 @@
-from inspect import Parameter, Signature, signature
-from typing import Callable, Optional, Tuple
+from inspect import Parameter, signature
+from typing import Callable, Tuple
 
 
-def _has_keyword_args(signature: Signature):
-    return any(
-        param.kind in (Parameter.VAR_KEYWORD, Parameter.KEYWORD_ONLY)
-        for param in signature.parameters.values()
-    )
+def is_curried(fn: Callable) -> bool:
+    return hasattr(fn, "__currying__")
 
 
-def _is_variadic(signature: Signature) -> bool:
+def _is_variadic(fn: Callable) -> bool:
     return any(
         param.kind == Parameter.VAR_POSITIONAL
-        for param in signature.parameters.values()
+        for param in signature(fn).parameters.values()
     )
 
 
@@ -21,30 +18,45 @@ def _register_curry(curried: Callable, original: Callable) -> Callable:
     return curried
 
 
-def _curry_function(fn, bindings=()):
-    sig = signature(fn)
-    if _is_variadic(sig):
+def _is_binding_complete(fn: Callable, bindings: Tuple) -> bool:
+    return len(bindings) == len(signature(fn).parameters) - 1
+
+
+def _curry_function(fn: Callable, bindings: Tuple = ()) -> Callable:
+    if _is_variadic(fn):
         return _register_curry(
             lambda x=None: fn(*bindings)
             if x is None
             else _curry_function(fn, (*bindings, x)),
             fn,
         )
-    if len(bindings) == len(sig.parameters) - 1:
+    if _is_binding_complete(fn, bindings):
         return _register_curry(lambda x: fn(*bindings, x), fn)
     return _register_curry(lambda x: _curry_function(fn, (*bindings, x)), fn)
 
 
-def curry(fn: Callable):
-    sig = signature(fn)
-    if len(sig.parameters) < 2 and not _is_variadic(sig):
+def _has_keyword_args(fn: Callable) -> bool:
+    return any(
+        param.kind in (Parameter.VAR_KEYWORD, Parameter.KEYWORD_ONLY)
+        for param in signature(fn).parameters.values()
+    )
+
+
+def _should_bypass_currying(fn: Callable) -> bool:
+    if not _is_variadic(fn) and len(signature(fn).parameters) < 2:
+        return True
+    return is_curried(fn)
+
+
+def curry(fn: Callable) -> Callable:
+    if _should_bypass_currying(fn):
         return fn
-    if _has_keyword_args(sig):
+    if _has_keyword_args(fn):
         raise TypeError("Currying functions with keyword-only args is not supported")
     return _curry_function(fn)
 
 
 def uncurry(fn: Callable):
-    if hasattr(fn, "__currying__"):
+    if is_curried(fn):
         return fn.__currying__
     raise TypeError("Not a curried function")
