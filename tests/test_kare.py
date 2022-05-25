@@ -1,7 +1,7 @@
 import pytest
 
 from kare import __version__
-from kare.curry import curry, uncurry
+from kare.curry import curry
 
 
 def test_version():
@@ -64,20 +64,3 @@ class TestCurry:
         assert fn1(2)(2) == 4
         assert fn2(2)(2)(3) == 7
         assert fn2(3)(7)(8) == 18
-
-    def test_uncurrying_a_curried_function_returns_the_original_function(self):
-        def binary_function(x: int, y: int) -> int:
-            return x + y
-
-        assert uncurry(curry(binary_function)) is binary_function
-
-    def test_variadic_curried_function(self):
-        def variadic_function(*args) -> int:
-            return sum(args)
-
-        fn = curry(variadic_function)
-
-        for _ in range(10):
-            fn = fn(1)
-
-        assert fn() == 10
