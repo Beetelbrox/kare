@@ -64,3 +64,11 @@ class TestCurry:
         assert fn1(2)(2) == 4
         assert fn2(2)(2)(3) == 7
         assert fn2(3)(7)(8) == 18
+    
+    def test_can_curry_function_using_decorator(self):
+        @curry
+        def binary_function(x: int, y: int) -> int:
+            return x + y
+        
+        add_three = binary_function(3)
+        assert add_three(1) == 4
