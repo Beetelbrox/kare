@@ -8,6 +8,18 @@ _INVALID_ARITIES = (
 )
 
 
+class BoundCurriedFunction:
+
+    __slots__ = ["_fn", "_bindings"]
+
+    def __init__(self, fn: Callable, bindings: Tuple):
+        self._fn = fn
+        self._bindings = bindings
+
+    def __call__(self, x):
+        return self._fn(*self._bindings, x)
+
+
 class CurriedFunction:
 
     __slots__ = ["_fn", "_bindings"]
@@ -16,16 +28,16 @@ class CurriedFunction:
         self._fn = fn
         self._bindings = bindings
 
-    def __call__(self, x):
+    def __call__(self, x) -> Callable:
         sig = signature(self._fn)
         bindings = (*self._bindings, x)
-        if len(bindings) == len(sig.parameters):
-            return self._fn(*bindings)
+        if len(bindings) == len(sig.parameters) - 1:
+            return BoundCurriedFunction(self._fn, bindings)
         return CurriedFunction(self._fn, bindings)
 
 
 def is_curried(fn: Callable) -> bool:
-    return isinstance(fn, CurriedFunction)
+    return isinstance(fn, CurriedFunction) or isinstance(fn, BoundCurriedFunction)
 
 
 def _has_invalid_arity(fn: Callable) -> bool:

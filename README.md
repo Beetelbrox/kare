@@ -1,52 +1,52 @@
 # kare
-Minimal implementation of [Function Currying](https://en.wikipedia.org/wiki/Currying) for python (ab)using function closures.
+Minimal implementation of [Function Currying](https://en.wikipedia.org/wiki/Currying) for python. 
 
 ## Usage
 You can curry any callable by applying the `curry` function to it:
 ```python
 from kare import curry
 
-def my_sum(x: int, y: int) -> int:
-    return x + y
+def my_sum(x: int, y: int, z: int) -> int:
+    return x + y + z
 
-my_curried_sum = curry(my_sum)
+curried_sum = curry(my_sum)
 ```
-The resulting curried function will take a single argument and return a new curried function with the first argument of the original function bound to the passed value:
+
+Curried functions take a single argument and return either a new function that takes a single argument or the result of applying all the arguments passed so far to the original function:
 ```python
-sum_two = my_curried_sum(2)
-sum_three = my_curried_sum(3)
+sum_two = curried_sum(2)
+sum_five = sum_two(3)
+sum_five(1) # == 6, equivalent to my_sum(2, 3, 1)
 ```
-Once all the arguments in the original function has been provided it is evaluated using the arguments passed to the curried function:
+
+If you chain multiple calls together for a more succint notation:
 ```python
-my_sum(2)(3)    # == my_sum(2, 3)
-my_sum(5)(3)    # == my_sum(5, 3)
+sum_five = curried_sum(2)(3)
 ```
-It supports functions with multiple positional arguments. To indicate that the function should be evaluated just call it with no args:
+
+The `curry` function also works as a decorator:
 ```python
-def variadic_sum(*args: int) -> int:
-    return sum(args)
+@curry
+def my_curried_sum(x: int, y: int, z: int) -> int:
+    return x + y + z
 
-fn = curry(variadic_sum)
-
-ten = fn(4)(2)(1)(1)(1)(1)
-
-ten()   # == 10
+add_six = my_curried_sum(2)(4)
 ```
-The definition of currying requires the curried function to receive arguments in the same order as the original function. To satisfy that requirement we've don't allow the use of keyword arguments of any kind:
+
+Currently we only support functions with positional and specified number of arguments. The following:
 ```python
-def kwargs_adder(*, x: int, y: int) -> int:
-    return x + y
+@curry  # This wil raise an exception
+def variadic_positional_function(*args):
+    ...
 
-def variadic_kwargs_adder(*, x: int, y: int) -> int:
-    return x + y
+@curry # This wil raise an exception
+def variadic_positional_function(*, x: int, y: int):
+    ...
 
-curry(kwargs_adder)             # THIS WILL RAISE AN EXCEPTION
-curry(variadic_kwargs_adder)    # THIS WILL RAISE AN EXCEPTION
+@curry # This wil raise an exception
+def variadic_positional_function(x: int, y: int, **kwargs):
+    ...
+
 ```
 
-If you need to do partial applications on keywords use `functools.partial` as usual:
-```python
-from functools import partial
-
-partial(kwargs_adder, x=1)
-```
+If you need to do partial application on keyword arguments you can use `functools`' `partial` as usual.
