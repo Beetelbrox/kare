@@ -1,3 +1,4 @@
+import abc
 from inspect import Parameter, signature
 from typing import Callable, Tuple
 
@@ -8,7 +9,7 @@ _INVALID_ARITIES = (
 )
 
 
-class BoundCurriedFunction:
+class CurriedFunction(abc.ABC):
 
     __slots__ = ["_fn", "_bindings"]
 
@@ -16,28 +17,23 @@ class BoundCurriedFunction:
         self._fn = fn
         self._bindings = bindings
 
+    @abc.abstractmethod
+    def __call__(self, x):
+        raise NotImplementedError()
+
+
+class BoundCurriedFunction(CurriedFunction):
     def __call__(self, x):
         return self._fn(*self._bindings, x)
 
 
-class CurriedFunction:
-
-    __slots__ = ["_fn", "_bindings"]
-
-    def __init__(self, fn: Callable, bindings: Tuple = ()):
-        self._fn = fn
-        self._bindings = bindings
-
+class UnboundCurriedFunction(CurriedFunction):
     def __call__(self, x) -> Callable:
         sig = signature(self._fn)
         bindings = (*self._bindings, x)
         if len(bindings) == len(sig.parameters) - 1:
             return BoundCurriedFunction(self._fn, bindings)
-        return CurriedFunction(self._fn, bindings)
-
-
-def is_curried(fn: Callable) -> bool:
-    return isinstance(fn, CurriedFunction) or isinstance(fn, BoundCurriedFunction)
+        return UnboundCurriedFunction(self._fn, bindings)
 
 
 def _has_invalid_arity(fn: Callable) -> bool:
@@ -47,7 +43,7 @@ def _has_invalid_arity(fn: Callable) -> bool:
 
 
 def _should_bypass_currying(fn: Callable) -> bool:
-    return len(signature(fn).parameters) < 2 or is_curried(fn)
+    return len(signature(fn).parameters) < 2 or isinstance(fn, CurriedFunction)
 
 
 def curry(fn: Callable) -> Callable:
@@ -57,4 +53,4 @@ def curry(fn: Callable) -> Callable:
         raise TypeError(
             "Currying functions with *args or keyword-only args is not supported"
         )
-    return CurriedFunction(fn)
+    return UnboundCurriedFunction(fn, ())

@@ -1,14 +1,31 @@
 [tool.poetry]
 name = "kare"
-version = "0.1.0"
-description = ""
-authors = ["Francisco Javier Jurado Moreno <9376816+Beetelbrox@users.noreply.github.com>"]
+version = "0.0.1"
+description = "Minimalist Currying implementation for Python"
+authors = ["Francisco J. Jurado <9376816+Beetelbrox@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/Beetelbrox/kare"
+repository = "https://github.com/Beetelbrox/kare"
+keywords = [
+    "functional",
+    "functional programming",
+    "fp",
+    "curry",
+    "currying",
+]
+include = [
+    "LICENSE",
+]
+
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+black = "^22.0"
+isort = "^5.10.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

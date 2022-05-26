@@ -1,11 +1,6 @@
 import pytest
 
-from kare import __version__
 from kare.curry import curry
-
-
-def test_version():
-    assert __version__ == "0.0.0"
 
 
 class TestCurry:
