@@ -15,7 +15,7 @@ keywords = [
     "currying",
 ]
 include = [
-    "LICENSE",
+    "LICENSE.rst",
 ]
 
 
